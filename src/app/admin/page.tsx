@@ -1,0 +1,169 @@
+"use client";
+
+import { normalize } from 'path';
+import { useState, useEffect } from 'react';
+import api from '@/services/api';
+import { Check, User, DollarSign, Trash2 } from 'lucide-react';
+
+export default function AdminDashboard() {
+    const [stats, setStats] = useState({ users: 0, pendingDeposits: 0 });
+    const [deposits, setDeposits] = useState<any[]>([]);
+    const [users, setUsers] = useState<any[]>([]);
+    const [message, setMessage] = useState('');
+
+    const fetchData = async () => {
+        try {
+            const [usersRes, depositsRes] = await Promise.all([
+                api.get('/admin/users'),
+                api.get('/admin/deposits')
+            ]);
+
+            setUsers(usersRes.data.data);
+            setDeposits(depositsRes.data.data);
+            setStats({
+                users: usersRes.data.data.length,
+                pendingDeposits: depositsRes.data.data.length
+            });
+
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const handleApproveDeposit = async (id: string) => {
+        try {
+            await api.put(`/admin/deposit/${id}/approve`);
+            setMessage('Deposit approved successfully');
+            fetchData();
+            setTimeout(() => setMessage(''), 3000);
+        } catch (error: any) {
+            setMessage(error.response?.data?.message || 'Approval failed');
+        }
+    };
+
+    const handleDeleteDeposit = async (id: string) => {
+        if (!confirm('Are you sure you want to reject/delete this deposit?')) return;
+
+        try {
+            await api.delete(`/admin/deposit/${id}`);
+            setMessage('Deposit deleted successfully');
+            fetchData();
+            setTimeout(() => setMessage(''), 3000);
+        } catch (error: any) {
+            setMessage(error.response?.data?.message || 'Delete failed');
+        }
+    };
+
+    return (
+        <div className="space-y-8">
+            <h1 className="text-3xl font-bold text-red-500">Admin Panel</h1>
+
+            {message && <div className={`p-4 rounded mb-4 ${message.includes('success') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>{message}</div>}
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 flex items-center">
+                    <div className="p-3 bg-blue-500/10 rounded-full mr-4"><User className="text-blue-500" /></div>
+                    <div>
+                        <p className="text-slate-400">Total Users</p>
+                        <p className="text-2xl font-bold">{stats.users}</p>
+                    </div>
+                </div>
+                <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 flex items-center">
+                    <div className="p-3 bg-yellow-500/10 rounded-full mr-4"><DollarSign className="text-yellow-500" /></div>
+                    <div>
+                        <p className="text-slate-400">Pending Deposits</p>
+                        <p className="text-2xl font-bold">{stats.pendingDeposits}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Pending Deposits Table */}
+            <div className="bg-slate-900 rounded-xl border border-slate-800">
+                <div className="p-6 border-b border-slate-800">
+                    <h2 className="text-xl font-bold">Pending Deposits</h2>
+                </div>
+                <table className="w-full text-left">
+                    <thead className="bg-slate-800 text-slate-400">
+                        <tr>
+                            <th className="p-4">User</th>
+                            <th className="p-4">Amount</th>
+                            <th className="p-4">TXID</th>
+                            <th className="p-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {deposits.map((deposit) => (
+                            <tr key={deposit.id} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50">
+                                <td className="p-4">
+                                    <div className="font-bold">{deposit.user.name}</div>
+                                    <div className="text-sm text-slate-500">{deposit.user.email}</div>
+                                </td>
+                                <td className="p-4 font-bold">{deposit.amount} {deposit.currency}</td>
+                                <td className="p-4 font-mono text-sm text-slate-500">{deposit.txid}</td>
+                                <td className="p-4 flex gap-2">
+                                    <button
+                                        onClick={() => handleApproveDeposit(deposit.id)}
+                                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded flex items-center text-sm"
+                                    >
+                                        <Check className="w-4 h-4 mr-1" /> Approve
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteDeposit(deposit.id)}
+                                        className="bg-red-600/20 hover:bg-red-600/30 text-red-500 px-3 py-1 rounded flex items-center text-sm"
+                                    >
+                                        <Trash2 className="w-4 h-4 mr-1" /> Reject
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        {deposits.length === 0 && (
+                            <tr>
+                                <td colSpan={4} className="p-4 text-center text-slate-500">No pending deposits</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Users Table */}
+            <div className="bg-slate-900 rounded-xl border border-slate-800">
+                <div className="p-6 border-b border-slate-800">
+                    <h2 className="text-xl font-bold">All Users</h2>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead className="bg-slate-800 text-slate-400">
+                            <tr>
+                                <th className="p-4">Name</th>
+                                <th className="p-4">Email</th>
+                                <th className="p-4">Role</th>
+                                <th className="p-4">Status</th>
+                                <th className="p-4">Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.map((u) => (
+                                <tr key={u.id} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50">
+                                    <td className="p-4 font-bold">{u.name}</td>
+                                    <td className="p-4">{u.email}</td>
+                                    <td className="p-4">
+                                        <span className={`text-xs px-2 py-1 rounded ${u.role === 'ADMIN' ? 'bg-red-500/20 text-red-500 ps-1' : 'bg-blue-500/20 text-blue-500'}`}>{u.role}</span>
+                                    </td>
+                                    <td className="p-4">
+                                        <span className={`text-xs px-2 py-1 rounded ${u.status === 'ACTIVE' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>{u.status}</span>
+                                    </td>
+                                    <td className="p-4 text-slate-500 text-sm" suppressHydrationWarning>{new Date(u.created_at).toLocaleDateString()}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+}

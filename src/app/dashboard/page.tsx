@@ -1,0 +1,104 @@
+"use client";
+
+import { useEffect, useState } from 'react';
+import api from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import { Wallet, TrendingUp, History } from 'lucide-react';
+
+export default function Dashboard() {
+    const { user } = useAuth();
+    const [wallets, setWallets] = useState<any[]>([]);
+    const [totalBalance, setTotalBalance] = useState(0);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const walletRes = await api.get('/wallet');
+                setWallets(walletRes.data.data);
+
+                // Simple mock estimation of total balance in USDT
+                // In real app, would fetch prices and calculate
+                const pricesRes = await api.get('/trade/prices');
+                const prices = pricesRes.data.data;
+
+                let total = 0;
+                walletRes.data.data.forEach((w: any) => {
+                    if (w.currency === 'USDT') {
+                        total += w.balance;
+                    } else {
+                        total += w.balance * (prices[w.currency] || 0);
+                    }
+                });
+                setTotalBalance(total);
+
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    return (
+        <div>
+            <header className="mb-8">
+                <h1 className="text-3xl font-bold">Welcome back, {user?.name}</h1>
+                <p className="text-slate-400">Here's what's happening with your portfolio today.</p>
+            </header>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-slate-400">Total Balance</h3>
+                        <div className="p-2 bg-blue-500/10 rounded-lg">
+                            <Wallet className="w-6 h-6 text-blue-500" />
+                        </div>
+                    </div>
+                    <p className="text-3xl font-bold">${totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                </div>
+
+                <div className="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-slate-400">Active Wallets</h3>
+                        <div className="p-2 bg-purple-500/10 rounded-lg">
+                            <TrendingUp className="w-6 h-6 text-purple-500" />
+                        </div>
+                    </div>
+                    <p className="text-3xl font-bold">{wallets.length}</p>
+                </div>
+            </div>
+
+            {/* Wallets List */}
+            <h2 className="text-xl font-bold mb-4">Your Assets</h2>
+            <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+                <table className="w-full text-left">
+                    <thead className="bg-slate-800 text-slate-400">
+                        <tr>
+                            <th className="p-4">Currency</th>
+                            <th className="p-4">Balance</th>
+                            <th className="p-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {wallets.map((wallet: any) => (
+                            <tr key={wallet.id} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50">
+                                <td className="p-4 font-bold">{wallet.currency}</td>
+                                <td className="p-4">{wallet.balance.toFixed(8)}</td>
+                                <td className="p-4">
+                                    {/* Placeholder actions */}
+                                    <span className="text-blue-400 text-sm cursor-pointer hover:underline">Deposit</span>
+                                </td>
+                            </tr>
+                        ))}
+                        {wallets.length === 0 && (
+                            <tr>
+                                <td colSpan={3} className="p-4 text-center text-slate-500">No wallets found</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
