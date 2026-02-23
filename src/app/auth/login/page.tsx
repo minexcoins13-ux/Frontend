@@ -38,7 +38,7 @@ export default function Login() {
                         Minexcoins and Welcome
                     </h1>
                     <p className="text-slate-400">
-                        Please fill up the form to continue
+                        Please sign in to continue
                     </p>
                 </div>
                 {error && <div className="bg-red-500/10 text-red-500 p-3 rounded mb-4 text-sm">{error}</div>}
