@@ -58,6 +58,22 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleUpdateUserStatus = async (id: string, currentStatus: string) => {
+        const newStatus = currentStatus === 'ACTIVE' ? 'BLOCKED' : 'ACTIVE';
+        const action = currentStatus === 'ACTIVE' ? 'suspend' : 'activate';
+
+        if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+
+        try {
+            await api.put(`/admin/users/${id}/status`, { status: newStatus });
+            setMessage(`User successfully ${newStatus.toLowerCase()}`);
+            fetchData();
+            setTimeout(() => setMessage(''), 3000);
+        } catch (error: any) {
+            setMessage(error.response?.data?.message || `Failed to ${action} user`);
+        }
+    };
+
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold text-red-500">Admin Panel</h1>
@@ -144,6 +160,7 @@ export default function AdminDashboard() {
                                 <th className="p-4">Role</th>
                                 <th className="p-4">Status</th>
                                 <th className="p-4">Joined</th>
+                                <th className="p-4">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -158,6 +175,16 @@ export default function AdminDashboard() {
                                         <span className={`text-xs px-2 py-1 rounded ${u.status === 'ACTIVE' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>{u.status}</span>
                                     </td>
                                     <td className="p-4 text-slate-500 text-sm" suppressHydrationWarning>{new Date(u.created_at).toLocaleDateString()}</td>
+                                    <td className="p-4">
+                                        {u.role !== 'ADMIN' && (
+                                            <button
+                                                onClick={() => handleUpdateUserStatus(u.id, u.status)}
+                                                className={`px-3 py-1 rounded text-sm text-white ${u.status === 'ACTIVE' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
+                                            >
+                                                {u.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                                            </button>
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
