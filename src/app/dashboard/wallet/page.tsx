@@ -135,7 +135,13 @@ export default function WalletPage() {
                             <h3 className="font-bold text-lg">{wallet.currency}</h3>
                             {wallet.currency === 'USDT' ? <span className="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded">Stablecoin</span> : null}
                         </div>
-                        <p className="text-2xl font-bold">{wallet.balance.toFixed(8)}</p>
+                        <p className="text-2xl font-bold mb-2">{wallet.balance.toFixed(8)}</p>
+                        {wallet.address && (
+                            <div className="bg-slate-800/50 p-2 rounded-lg text-xs text-slate-400 break-all select-all cursor-copy">
+                                <span className="block text-slate-500 mb-1">Deposit Address:</span>
+                                {wallet.address}
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>
