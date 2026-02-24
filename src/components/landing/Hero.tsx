@@ -43,18 +43,6 @@ export default function Hero() {
                         </Link>
                     </div>
 
-                    <div className="flex items-center justify-center gap-6">
-                        <button className="bg-black border border-white/20 rounded-xl px-4 py-2 flex items-center gap-3 hover:bg-white/5 transition">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" className="h-10" />
-                        </button>
-                        {/* Using a placeholder for App Store as direct SVG URL might not be stable, but text based button is fine usually */}
-                        <button className="bg-black border border-white/20 rounded-xl px-4 py-2 flex items-center gap-3 hover:bg-white/5 transition text-white">
-                            <div className="text-left">
-                                <div className="text-xs text-gray-400">Download on the</div>
-                                <div className="text-xl font-bold leading-none">App Store</div>
-                            </div>
-                        </button>
-                    </div>
                 </motion.div>
             </div>
 
