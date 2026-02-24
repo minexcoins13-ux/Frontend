@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
 import { ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
+import { useBinanceTicker } from '@/hooks/useBinanceTicker';
 
 export default function TradePage() {
-    const [prices, setPrices] = useState<any>({});
     const [trades, setTrades] = useState<any[]>([]);
     const [selectedPair, setSelectedPair] = useState('BTC/USDT');
     const [amount, setAmount] = useState('');
@@ -13,14 +13,7 @@ export default function TradePage() {
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState('');
 
-    const fetchPrices = async () => {
-        try {
-            const res = await api.get('/trade/prices');
-            setPrices(res.data.data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    const { prices } = useBinanceTicker(['BTC', 'ETH', 'TRX', 'BNB']);
 
     const fetchHistory = async () => {
         try {
@@ -32,10 +25,7 @@ export default function TradePage() {
     };
 
     useEffect(() => {
-        fetchPrices();
         fetchHistory();
-        const interval = setInterval(fetchPrices, 5000); // Update every 5s
-        return () => clearInterval(interval);
     }, []);
 
     const handleTrade = async (e: React.FormEvent) => {
@@ -57,7 +47,7 @@ export default function TradePage() {
 
     const base = selectedPair.split('/')[0];
     const quote = selectedPair.split('/')[1];
-    const currentPrice = prices[base];
+    const currentPrice = prices[base]?.price || 0;
 
     return (
         <div className="space-y-8">

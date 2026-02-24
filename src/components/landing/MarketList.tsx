@@ -4,10 +4,9 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, Search, ArrowRight, Star } from 'lucide-react';
-import api from '@/services/api';
+import { useBinanceTicker } from '@/hooks/useBinanceTicker';
 
 export default function MarketList() {
-    const [prices, setPrices] = useState<any>({});
     const [searchQuery, setSearchQuery] = useState('');
     const [favorites, setFavorites] = useState<string[]>([]);
 
@@ -27,56 +26,8 @@ export default function MarketList() {
         { symbol: 'MATIC', name: 'Polygon', price: 0.75, change: 1.5, volume: '300M', marketCap: '7B', logo: 'https://cryptologos.cc/logos/polygon-matic-logo.svg?v=029' },
     ];
 
-    useEffect(() => {
-        // Fallback API if WS is slow or blocked
-        const fetchInitialPrices = async () => {
-            try {
-                const res = await api.get('/trade/prices');
-                if (res.data && res.data.data) {
-                    const formatted: any = {};
-                    Object.keys(res.data.data).forEach(key => {
-                        formatted[key] = { price: res.data.data[key] };
-                    });
-                    setPrices(formatted);
-                }
-            } catch (error) { }
-        };
-        fetchInitialPrices();
-
-        // Connect to Binance WebSockets for live 24hr ticker data
-        const ws = new WebSocket('wss://stream.binance.com:9443/ws');
-
-        ws.onopen = () => {
-            ws.send(JSON.stringify({
-                method: "SUBSCRIBE",
-                params: staticMarkets.map(m => `${m.symbol.toLowerCase()}usdt@ticker`),
-                id: 1
-            }));
-        };
-
-        ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                // e = event type, s = symbol, c = current close price, P = price change percent
-                if (data.e === '24hrTicker') {
-                    const symbol = data.s.replace('USDT', '');
-                    setPrices((prev: any) => ({
-                        ...prev,
-                        [symbol]: {
-                            price: parseFloat(data.c),
-                            change: parseFloat(data.P)
-                        }
-                    }));
-                }
-            } catch (err) {
-                console.error('WS Error:', err);
-            }
-        };
-
-        return () => {
-            ws.close();
-        };
-    }, []);
+    // Use custom hook to fetch and keep Binance prices updated
+    const { prices } = useBinanceTicker(staticMarkets.map(m => m.symbol));
 
     const toggleFavorite = (symbol: string) => {
         if (favorites.includes(symbol)) {

@@ -3,13 +3,15 @@
 import { normalize } from 'path';
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
-import { Check, User, DollarSign, Trash2 } from 'lucide-react';
+import { Check, User, DollarSign, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
+import { useBinanceTicker } from '@/hooks/useBinanceTicker';
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState({ users: 0, pendingDeposits: 0 });
     const [deposits, setDeposits] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
     const [message, setMessage] = useState('');
+    const { prices } = useBinanceTicker(['BTC', 'ETH', 'SOL', 'BNB']);
 
     const fetchData = async () => {
         try {
@@ -77,6 +79,26 @@ export default function AdminDashboard() {
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold text-red-500">Admin Panel</h1>
+
+            {/* Live Prices Ticker */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {['BTC', 'ETH', 'SOL', 'BNB'].map(symbol => {
+                    const data = prices[symbol];
+                    if (!data) return null;
+                    return (
+                        <div key={symbol} className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-slate-400 text-sm font-bold">{symbol}/USDT</h3>
+                                <p className="text-xl font-bold">${data.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                            </div>
+                            <div className={`flex items-center text-sm font-bold ${data.change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                {data.change >= 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
+                                {Math.abs(data.change).toFixed(2)}%
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
 
             {message && <div className={`p-4 rounded mb-4 ${message.includes('success') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>{message}</div>}
 
