@@ -81,7 +81,7 @@ export default function WalletPage() {
         setMessage('');
         try {
             await api.post('/wallet/withdraw', { amount, currency, address });
-            setMessage('Withdrawal request submitted successfully!');
+            setMessage('Currency transferred successfully!');
             setAmount('');
             setAddress('');
             fetchData();
