@@ -147,13 +147,13 @@ export default function WalletPage() {
                         onClick={() => setActiveTab('deposit')}
                         className={`pb-4 px-2 ${activeTab === 'deposit' ? 'text-blue-500 border-b-2 border-blue-500 font-bold' : 'text-slate-400 hover:text-white'}`}
                     >
-                        Deposit
+                        Receive
                     </button>
                     <button
                         onClick={() => setActiveTab('withdraw')}
                         className={`pb-4 px-2 ${activeTab === 'withdraw' ? 'text-blue-500 border-b-2 border-blue-500 font-bold' : 'text-slate-400 hover:text-white'}`}
                     >
-                        Withdraw
+                        Send
                     </button>
                 </div>
 
@@ -197,7 +197,7 @@ export default function WalletPage() {
                             />
                         </div>
                         <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">
-                            Submit Deposit
+                            Submit Receive
                         </button>
                     </form>
                 ) : (
@@ -238,7 +238,7 @@ export default function WalletPage() {
                             />
                         </div>
                         <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">
-                            Request Withdrawal
+                            Send Funds
                         </button>
                     </form>
                 )}

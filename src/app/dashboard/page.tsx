@@ -87,7 +87,7 @@ export default function Dashboard() {
                                 <td className="p-4">{wallet.balance.toFixed(8)}</td>
                                 <td className="p-4">
                                     {/* Placeholder actions */}
-                                    <span className="text-blue-400 text-sm cursor-pointer hover:underline">Deposit</span>
+                                    <span className="text-blue-400 text-sm cursor-pointer hover:underline">Receive</span>
                                 </td>
                             </tr>
                         ))}
