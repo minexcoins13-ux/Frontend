@@ -159,6 +159,7 @@ export default function AdminDashboard() {
                                 <th className="p-4">Email</th>
                                 <th className="p-4">Role</th>
                                 <th className="p-4">Status</th>
+                                <th className="p-4">Wallets</th>
                                 <th className="p-4">Joined</th>
                                 <th className="p-4">Action</th>
                             </tr>
@@ -173,6 +174,14 @@ export default function AdminDashboard() {
                                     </td>
                                     <td className="p-4">
                                         <span className={`text-xs px-2 py-1 rounded ${u.status === 'ACTIVE' ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>{u.status}</span>
+                                    </td>
+                                    <td className="p-4 text-xs">
+                                        {u.wallet?.map((w: any) => (
+                                            <div key={w.id} className="mb-1 text-slate-300">
+                                                <span className="font-bold">{w.currency}:</span> <br />
+                                                <span className="text-[10px] text-slate-500 font-mono select-all break-all">{w.address || 'N/A'}</span>
+                                            </div>
+                                        ))}
                                     </td>
                                     <td className="p-4 text-slate-500 text-sm" suppressHydrationWarning>{new Date(u.created_at).toLocaleDateString()}</td>
                                     <td className="p-4">
