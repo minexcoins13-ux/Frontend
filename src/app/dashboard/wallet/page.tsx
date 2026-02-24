@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import api from '@/services/api';
 import { RefreshCw, ArrowUpRight, ArrowDownLeft, Wallet as WalletIcon, LogOut, Download } from 'lucide-react';
 import WalletModal from '@/components/WalletModal';
+import jsPDF from 'jspdf';
 
 export default function WalletPage() {
     const [wallets, setWallets] = useState<any[]>([]);
@@ -91,29 +92,27 @@ export default function WalletPage() {
     };
 
     const downloadReceipt = (tx: any) => {
-        const receiptContent = `
+        const doc = new jsPDF();
+        doc.setFont('courier', 'normal');
+        doc.setFontSize(12);
+
+        const content = `
 MINEXCOINS TRANSACTION RECEIPT
 ----------------------------------------
-Transaction ID : 
-Date           : 
-Type           : 
-Amount         :  
-Status         : 
-Reference      : 
+Transaction ID : ${tx.id}
+Date           : ${new Date(tx.created_at).toLocaleString()}
+Type           : ${tx.type}
+Amount         : ${Math.abs(tx.amount).toFixed(8)} ${tx.currency}
+Status         : ${tx.status || 'COMPLETED'}
+Reference      : ${tx.reference_id || 'N/A'}
 
 Thank you for using MinexCoins.
 ----------------------------------------
-        `.trim();
+`.trim();
 
-        const blob = new Blob([receiptContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = "MinexCoins_Receipt_" + tx.id.substring(0, 8) + ".txt";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        const lines = doc.splitTextToSize(content, 180);
+        doc.text(lines, 15, 20);
+        doc.save(`MinexCoins_Receipt_${tx.id.substring(0, 8)}.pdf`);
     };
 
     return (
@@ -177,7 +176,7 @@ Thank you for using MinexCoins.
                 <div className="flex space-x-4 border-b border-slate-800 mb-6">
                     <button
                         onClick={() => setActiveTab('deposit')}
-                        className={`pb - 4 px - 2 ${activeTab === 'deposit' ? 'text-blue-500 border-b-2 border-blue-500 font-bold' : 'text-slate-400 hover:text-white'} `}
+                        className={`pb - 4 px - 2 ${activeTab === 'deposit' ? 'text-blue-500 border-b-2 border-blue-500 font-bold' : 'text-slate-400 hover:text-white'}`}
                     >
                         Receive
                     </button>
@@ -296,7 +295,7 @@ Thank you for using MinexCoins.
                         {transactions.map((tx) => (
                             <tr key={tx.id} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50">
                                 <td className="p-4">
-                                    <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold ${tx.amount > 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                                    <span className={`inline - flex items - center px - 2 py - 1 rounded text - xs font - bold ${tx.amount > 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
                                         } `}>
                                         {tx.amount > 0 ? <ArrowDownLeft className="w-3 h-3 mr-1" /> : <ArrowUpRight className="w-3 h-3 mr-1" />}
                                         {tx.type}
