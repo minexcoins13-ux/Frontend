@@ -28,21 +28,54 @@ export default function MarketList() {
     ];
 
     useEffect(() => {
-        const fetchPrices = async () => {
+        // Fallback API if WS is slow or blocked
+        const fetchInitialPrices = async () => {
             try {
-                // If the user's backend is running, try to fetch real prices to overlay on static data
                 const res = await api.get('/trade/prices');
                 if (res.data && res.data.data) {
-                    setPrices(res.data.data);
+                    const formatted: any = {};
+                    Object.keys(res.data.data).forEach(key => {
+                        formatted[key] = { price: res.data.data[key] };
+                    });
+                    setPrices(formatted);
                 }
-            } catch (error) {
-                // Silently fallback
+            } catch (error) { }
+        };
+        fetchInitialPrices();
+
+        // Connect to Binance WebSockets for live 24hr ticker data
+        const ws = new WebSocket('wss://stream.binance.com:9443/ws');
+
+        ws.onopen = () => {
+            ws.send(JSON.stringify({
+                method: "SUBSCRIBE",
+                params: staticMarkets.map(m => `${m.symbol.toLowerCase()}usdt@ticker`),
+                id: 1
+            }));
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                // e = event type, s = symbol, c = current close price, P = price change percent
+                if (data.e === '24hrTicker') {
+                    const symbol = data.s.replace('USDT', '');
+                    setPrices((prev: any) => ({
+                        ...prev,
+                        [symbol]: {
+                            price: parseFloat(data.c),
+                            change: parseFloat(data.P)
+                        }
+                    }));
+                }
+            } catch (err) {
+                console.error('WS Error:', err);
             }
         };
 
-        fetchPrices();
-        const interval = setInterval(fetchPrices, 10000); // 10s poll
-        return () => clearInterval(interval);
+        return () => {
+            ws.close();
+        };
     }, []);
 
     const toggleFavorite = (symbol: string) => {
@@ -55,11 +88,11 @@ export default function MarketList() {
 
     // Merge static info with live prices if available
     const displayMarkets = staticMarkets.map(market => {
-        const livePrice = prices[market.symbol];
+        const liveData = prices[market.symbol];
         return {
             ...market,
-            price: livePrice ? livePrice : market.price,
-            // You can also add mock calculations for live change if needed
+            price: liveData?.price ?? market.price,
+            change: liveData?.change ?? market.change,
         };
     }).filter(market =>
         market.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
