@@ -171,6 +171,8 @@ export default function WalletPage() {
                                 <option value="USDT">USDT</option>
                                 <option value="BTC">BTC</option>
                                 <option value="ETH">ETH</option>
+                                <option value="TRX">TRX</option>
+                                <option value="BNB">BNB</option>
                             </select>
                         </div>
                         <div>
@@ -210,6 +212,8 @@ export default function WalletPage() {
                                 <option value="USDT">USDT</option>
                                 <option value="BTC">BTC</option>
                                 <option value="ETH">ETH</option>
+                                <option value="TRX">TRX</option>
+                                <option value="BNB">BNB</option>
                             </select>
                         </div>
                         <div>

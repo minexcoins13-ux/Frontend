@@ -55,9 +55,9 @@ export default function TradePage() {
         }
     };
 
-    const currentPrice = selectedPair.startsWith('BTC') ? prices.BTC : prices.ETH;
     const base = selectedPair.split('/')[0];
     const quote = selectedPair.split('/')[1];
+    const currentPrice = prices[base];
 
     return (
         <div className="space-y-8">
@@ -86,6 +86,18 @@ export default function TradePage() {
                                 className={`px-4 py-2 rounded-lg transition ${selectedPair === 'ETH/USDT' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'}`}
                             >
                                 ETH/USDT
+                            </button>
+                            <button
+                                onClick={() => setSelectedPair('TRX/USDT')}
+                                className={`px-4 py-2 rounded-lg transition ${selectedPair === 'TRX/USDT' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'}`}
+                            >
+                                TRX/USDT
+                            </button>
+                            <button
+                                onClick={() => setSelectedPair('BNB/USDT')}
+                                className={`px-4 py-2 rounded-lg transition ${selectedPair === 'BNB/USDT' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'}`}
+                            >
+                                BNB/USDT
                             </button>
                         </div>
                     </div>
