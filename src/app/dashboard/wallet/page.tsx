@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
-import { RefreshCw, ArrowUpRight, ArrowDownLeft, Wallet as WalletIcon, LogOut } from 'lucide-react';
+import { RefreshCw, ArrowUpRight, ArrowDownLeft, Wallet as WalletIcon, LogOut, Download } from 'lucide-react';
 import WalletModal from '@/components/WalletModal';
 
 export default function WalletPage() {
@@ -90,6 +90,32 @@ export default function WalletPage() {
         }
     };
 
+    const downloadReceipt = (tx: any) => {
+        const receiptContent = `
+MINEXCOINS TRANSACTION RECEIPT
+----------------------------------------
+Transaction ID : 
+Date           : 
+Type           : 
+Amount         :  
+Status         : 
+Reference      : 
+
+Thank you for using MinexCoins.
+----------------------------------------
+        `.trim();
+
+        const blob = new Blob([receiptContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "MinexCoins_Receipt_" + tx.id.substring(0, 8) + ".txt";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <div className="space-y-8 relative">
             <WalletModal
@@ -151,19 +177,19 @@ export default function WalletPage() {
                 <div className="flex space-x-4 border-b border-slate-800 mb-6">
                     <button
                         onClick={() => setActiveTab('deposit')}
-                        className={`pb-4 px-2 ${activeTab === 'deposit' ? 'text-blue-500 border-b-2 border-blue-500 font-bold' : 'text-slate-400 hover:text-white'}`}
+                        className={`pb - 4 px - 2 ${activeTab === 'deposit' ? 'text-blue-500 border-b-2 border-blue-500 font-bold' : 'text-slate-400 hover:text-white'} `}
                     >
                         Receive
                     </button>
                     <button
                         onClick={() => setActiveTab('withdraw')}
-                        className={`pb-4 px-2 ${activeTab === 'withdraw' ? 'text-blue-500 border-b-2 border-blue-500 font-bold' : 'text-slate-400 hover:text-white'}`}
+                        className={`pb - 4 px - 2 ${activeTab === 'withdraw' ? 'text-blue-500 border-b-2 border-blue-500 font-bold' : 'text-slate-400 hover:text-white'} `}
                     >
                         Send
                     </button>
                 </div>
 
-                {message && <div className={`p-4 rounded mb-4 ${message.includes('success') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>{message}</div>}
+                {message && <div className={`p - 4 rounded mb - 4 ${message.includes('success') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'} `}>{message}</div>}
 
                 {activeTab === 'deposit' ? (
                     <form onSubmit={handleDeposit} className="space-y-4 max-w-lg">
@@ -263,6 +289,7 @@ export default function WalletPage() {
                             <th className="p-4">Amount</th>
                             <th className="p-4">Reference</th>
                             <th className="p-4">Date</th>
+                            <th className="p-4 text-right">Receipt</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -270,7 +297,7 @@ export default function WalletPage() {
                             <tr key={tx.id} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50">
                                 <td className="p-4">
                                     <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold ${tx.amount > 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
-                                        }`}>
+                                        } `}>
                                         {tx.amount > 0 ? <ArrowDownLeft className="w-3 h-3 mr-1" /> : <ArrowUpRight className="w-3 h-3 mr-1" />}
                                         {tx.type}
                                     </span>
@@ -278,11 +305,20 @@ export default function WalletPage() {
                                 <td className="p-4 font-bold">{Math.abs(tx.amount).toFixed(8)} {tx.currency}</td>
                                 <td className="p-4 text-slate-500 font-mono text-sm">{tx.reference_id?.substring(0, 8)}...</td>
                                 <td className="p-4 text-slate-400" suppressHydrationWarning>{new Date(tx.created_at).toLocaleDateString()}</td>
+                                <td className="p-4 text-right">
+                                    <button
+                                        onClick={() => downloadReceipt(tx)}
+                                        className="text-slate-400 hover:text-blue-500 transition-colors p-2"
+                                        title="Download Receipt"
+                                    >
+                                        <Download className="w-5 h-5 inline-block" />
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                         {transactions.length === 0 && (
                             <tr>
-                                <td colSpan={4} className="p-4 text-center text-slate-500">No transactions yet</td>
+                                <td colSpan={5} className="p-4 text-center text-slate-500">No transactions yet</td>
                             </tr>
                         )}
                     </tbody>
@@ -291,4 +327,3 @@ export default function WalletPage() {
         </div>
     );
 }
-
