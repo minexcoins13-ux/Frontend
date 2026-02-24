@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Navbar from "@/components/landing/Navbar";
-import Footer from "@/components/landing/Footer";
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, Search, ArrowRight, Star } from 'lucide-react';
 import api from '@/services/api';
 
-export default function MarketPage() {
+export default function MarketList() {
     const [prices, setPrices] = useState<any>({});
     const [searchQuery, setSearchQuery] = useState('');
     const [favorites, setFavorites] = useState<string[]>([]);
@@ -38,7 +36,7 @@ export default function MarketPage() {
                     setPrices(res.data.data);
                 }
             } catch (error) {
-                console.log("Could not fetch live prices, using fallback data.");
+                // Silently fallback
             }
         };
 
@@ -69,26 +67,23 @@ export default function MarketPage() {
     );
 
     return (
-        <main className="min-h-screen bg-[#020617] text-white flex flex-col font-sans">
-            <Navbar />
-
+        <section className="relative z-10 w-full" id="markets">
             {/* Header Section */}
-            <div className="pt-32 pb-12 relative overflow-hidden">
-                {/* Background Glows and Image */}
-                <div className="absolute inset-0 bg-[url('file:///C:/Users/HP/.gemini/antigravity/brain/03d91809-8aa4-4339-96b0-504ad344869f/crypto_glow_hero_bg_1771956458340.png')] bg-cover bg-center bg-no-repeat opacity-40 mix-blend-screen pointer-events-none"></div>
+            <div className="pt-12 pb-12 relative overflow-hidden">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-600/30 rounded-full blur-[120px] pointer-events-none"></div>
                 <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-green-500/30 rounded-full blur-[120px] pointer-events-none"></div>
 
                 <div className="container mx-auto px-6 relative z-10">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
                         transition={{ duration: 0.5 }}
                         className="text-center max-w-3xl mx-auto"
                     >
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 tracking-tight">
+                        <h2 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">
                             Cryptocurrency <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">Markets</span>
-                        </h1>
+                        </h2>
                         <p className="text-slate-400 text-lg mb-10">
                             Track real-time prices, volume, and market capitalization for top cryptocurrencies. Sign up to trade instantly.
                         </p>
@@ -111,7 +106,7 @@ export default function MarketPage() {
             </div>
 
             {/* Markets List Section */}
-            <div className="container mx-auto px-6 pb-24 flex-grow relative z-10">
+            <div className="container mx-auto px-6 pb-24 relative z-10">
                 <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
@@ -130,8 +125,9 @@ export default function MarketPage() {
                                 {displayMarkets.map((market, index) => (
                                     <motion.tr
                                         initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.3, delay: (index % 10) * 0.05 }}
                                         key={market.symbol}
                                         className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors group"
                                     >
@@ -192,7 +188,7 @@ export default function MarketPage() {
                 <div className="mt-16 bg-gradient-to-r from-blue-900/40 to-green-900/40 border border-white/10 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between text-center md:text-left shadow-2xl overflow-hidden relative">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/20 rounded-full blur-[80px]"></div>
                     <div className="relative z-10 mb-6 md:mb-0 max-w-xl">
-                        <h2 className="text-3xl font-bold mb-4">Ready to start trading?</h2>
+                        <h3 className="text-3xl font-bold mb-4">Ready to start trading?</h3>
                         <p className="text-slate-300 text-lg">Join MINEXCOINS today and get access to our advanced trading platform, low fees, and top-tier security.</p>
                     </div>
                     <Link href="/auth/register" className="relative z-10 whitespace-nowrap px-8 py-4 bg-white text-black rounded-full font-bold shadow-lg shadow-white/20 hover:scale-105 transition-transform flex items-center gap-2">
@@ -200,8 +196,6 @@ export default function MarketPage() {
                     </Link>
                 </div>
             </div>
-
-            <Footer />
-        </main>
+        </section>
     );
 }
