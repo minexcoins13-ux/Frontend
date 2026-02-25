@@ -25,7 +25,12 @@ export default function Login() {
             login(res.data.data.token, res.data.data);
             router.push('/dashboard');
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Login failed');
+            console.error('Login Error:', err);
+            if (!err.response) {
+                setError('Network error: Unable to reach the server. Please check if the backend is running.');
+            } else {
+                setError(err.response?.data?.message || 'Login failed due to unexpected server response.');
+            }
         } finally {
             setIsSubmitting(false);
         }
