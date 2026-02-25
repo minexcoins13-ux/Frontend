@@ -18,6 +18,10 @@ interface UserProfile {
         document_url: string;
         admin_note: string;
     };
+    bank_name?: string;
+    account_name?: string;
+    account_number?: string;
+    ifsc_code?: string;
 }
 
 export default function ProfilePage() {
@@ -32,11 +36,29 @@ export default function ProfilePage() {
     const [uploadError, setUploadError] = useState('');
     const [uploadSuccess, setUploadSuccess] = useState('');
 
+    // Bank Details State
+    const [bankDetails, setBankDetails] = useState({
+        bank_name: '',
+        account_name: '',
+        account_number: '',
+        ifsc_code: ''
+    });
+    const [bankLoading, setBankLoading] = useState(false);
+    const [bankError, setBankError] = useState('');
+    const [bankSuccess, setBankSuccess] = useState('');
+
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 const res = await api.get('/auth/profile');
-                setProfile(res.data.data);
+                const data = res.data.data;
+                setProfile(data);
+                setBankDetails({
+                    bank_name: data.bank_name || '',
+                    account_name: data.account_name || '',
+                    account_number: data.account_number || '',
+                    ifsc_code: data.ifsc_code || ''
+                });
             } catch (err: any) {
                 setError('Failed to load profile data');
                 console.error(err);
@@ -85,6 +107,26 @@ export default function ProfilePage() {
             setUploadError(err.response?.data?.message || 'Failed to upload document');
         } finally {
             setUploadLoading(false);
+        }
+    };
+
+    const handleBankSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setBankLoading(true);
+        setBankError('');
+        setBankSuccess('');
+
+        try {
+            const res = await api.put('/auth/bank', bankDetails);
+            if (res.data.success) {
+                setBankSuccess('Bank details updated successfully!');
+                setProfile(prev => prev ? { ...prev, ...res.data.data } : null);
+            }
+        } catch (err: any) {
+            console.error('Bank Update Error:', err);
+            setBankError(err.response?.data?.message || 'Failed to update bank details');
+        } finally {
+            setBankLoading(false);
         }
     };
 
@@ -236,6 +278,68 @@ export default function ProfilePage() {
                             <button className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">Enable</button>
                         </div>
                     </div>
+                </div>
+
+                {/* Bank Details */}
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 md:col-span-2">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5 text-yellow-500" /> Bank Account Details
+                    </h3>
+                    <form onSubmit={handleBankSubmit} className="space-y-4">
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Bank Name</label>
+                                <input
+                                    type="text"
+                                    value={bankDetails.bank_name}
+                                    onChange={(e) => setBankDetails({ ...bankDetails, bank_name: e.target.value })}
+                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="e.g. Chase Bank"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Account Holder Name</label>
+                                <input
+                                    type="text"
+                                    value={bankDetails.account_name}
+                                    onChange={(e) => setBankDetails({ ...bankDetails, account_name: e.target.value })}
+                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="John Doe"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Account Number</label>
+                                <input
+                                    type="text"
+                                    value={bankDetails.account_number}
+                                    onChange={(e) => setBankDetails({ ...bankDetails, account_number: e.target.value })}
+                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="1234567890"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-1">IFSC / Routing Code</label>
+                                <input
+                                    type="text"
+                                    value={bankDetails.ifsc_code}
+                                    onChange={(e) => setBankDetails({ ...bankDetails, ifsc_code: e.target.value })}
+                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="ABCD0123456"
+                                />
+                            </div>
+                        </div>
+
+                        {bankError && <div className="text-red-500 text-sm mt-2">{bankError}</div>}
+                        {bankSuccess && <div className="text-green-500 text-sm mt-2">{bankSuccess}</div>}
+
+                        <button
+                            type="submit"
+                            disabled={bankLoading}
+                            className="w-full md:w-auto mt-4 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium rounded-lg transition"
+                        >
+                            {bankLoading ? 'Saving...' : 'Save Bank Details'}
+                        </button>
+                    </form>
                 </div>
             </div>
 
