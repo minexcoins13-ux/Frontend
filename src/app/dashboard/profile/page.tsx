@@ -402,38 +402,7 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            {/* Recent Activity (Mock) */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                    <History className="w-5 h-5 text-purple-500" /> Recent Activity
-                </h3>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-slate-400">
-                        <thead className="text-xs uppercase bg-slate-800/50 text-slate-300">
-                            <tr>
-                                <th className="px-6 py-3 rounded-l-lg">Action</th>
-                                <th className="px-6 py-3">Device</th>
-                                <th className="px-6 py-3">Location</th>
-                                <th className="px-6 py-3 rounded-r-lg">Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr className="border-b border-slate-800/50">
-                                <td className="px-6 py-4 text-white">Login Successful</td>
-                                <td className="px-6 py-4">Chrome / Windows</td>
-                                <td className="px-6 py-4">New York, USA</td>
-                                <td className="px-6 py-4">{new Date().toLocaleDateString()}</td>
-                            </tr>
-                            <tr className="border-b border-slate-800/50">
-                                <td className="px-6 py-4 text-white">Password Changed</td>
-                                <td className="px-6 py-4">Chrome / Windows</td>
-                                <td className="px-6 py-4">New York, USA</td>
-                                <td className="px-6 py-4">{new Date(Date.now() - 86400000 * 30).toLocaleDateString()}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
         </div>
     );
 }
