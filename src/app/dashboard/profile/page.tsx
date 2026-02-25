@@ -389,19 +389,6 @@ export default function ProfilePage() {
                                 </div>
                             )}
                         </div>
-
-                        <div className="flex justify-between items-center p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-slate-700 rounded-lg">
-                                    <Shield className="w-5 h-5 text-slate-300" />
-                                </div>
-                                <div>
-                                    <div className="text-white font-medium">Two-Factor Auth</div>
-                                    <div className="text-xs text-slate-400">Secure your account with 2FA</div>
-                                </div>
-                            </div>
-                            <button className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">Enable</button>
-                        </div>
                     </div>
                 </div>
 
