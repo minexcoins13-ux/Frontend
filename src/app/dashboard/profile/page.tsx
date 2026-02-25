@@ -46,6 +46,7 @@ export default function ProfilePage() {
     const [bankLoading, setBankLoading] = useState(false);
     const [bankError, setBankError] = useState('');
     const [bankSuccess, setBankSuccess] = useState('');
+    const [isEditingBank, setIsEditingBank] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -121,6 +122,7 @@ export default function ProfilePage() {
             if (res.data.success) {
                 setBankSuccess('Bank details updated successfully!');
                 setProfile(prev => prev ? { ...prev, ...res.data.data } : null);
+                setIsEditingBank(false);
             }
         } catch (err: any) {
             console.error('Bank Update Error:', err);
@@ -282,64 +284,121 @@ export default function ProfilePage() {
 
                 {/* Bank Details */}
                 <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 md:col-span-2">
-                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5 text-yellow-500" /> Bank Account Details
-                    </h3>
-                    <form onSubmit={handleBankSubmit} className="space-y-4">
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-1">Bank Name</label>
-                                <input
-                                    type="text"
-                                    value={bankDetails.bank_name}
-                                    onChange={(e) => setBankDetails({ ...bankDetails, bank_name: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="e.g. Chase Bank"
-                                />
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                            <AlertCircle className="w-5 h-5 text-yellow-500" /> Bank Account Details
+                        </h3>
+                        {profile.bank_name && !isEditingBank && (
+                            <button
+                                onClick={() => setIsEditingBank(true)}
+                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-lg transition"
+                            >
+                                Edit Details
+                            </button>
+                        )}
+                    </div>
+                    {(!profile.bank_name || isEditingBank) ? (
+                        <form onSubmit={handleBankSubmit} className="space-y-4">
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300 mb-1">Bank Name</label>
+                                    <input
+                                        type="text"
+                                        value={bankDetails.bank_name}
+                                        onChange={(e) => setBankDetails({ ...bankDetails, bank_name: e.target.value })}
+                                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="e.g. Chase Bank"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300 mb-1">Account Holder Name</label>
+                                    <input
+                                        type="text"
+                                        value={bankDetails.account_name}
+                                        onChange={(e) => setBankDetails({ ...bankDetails, account_name: e.target.value })}
+                                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="John Doe"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300 mb-1">Account Number</label>
+                                    <input
+                                        type="text"
+                                        value={bankDetails.account_number}
+                                        onChange={(e) => setBankDetails({ ...bankDetails, account_number: e.target.value })}
+                                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="1234567890"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300 mb-1">IFSC / Routing Code</label>
+                                    <input
+                                        type="text"
+                                        value={bankDetails.ifsc_code}
+                                        onChange={(e) => setBankDetails({ ...bankDetails, ifsc_code: e.target.value })}
+                                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="ABCD0123456"
+                                        required
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-1">Account Holder Name</label>
-                                <input
-                                    type="text"
-                                    value={bankDetails.account_name}
-                                    onChange={(e) => setBankDetails({ ...bankDetails, account_name: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="John Doe"
-                                />
+
+                            {bankError && <div className="text-red-500 text-sm mt-2">{bankError}</div>}
+
+                            <div className="flex gap-3 mt-4">
+                                <button
+                                    type="submit"
+                                    disabled={bankLoading}
+                                    className="w-full md:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium rounded-lg transition"
+                                >
+                                    {bankLoading ? 'Saving...' : 'Save Bank Details'}
+                                </button>
+                                {profile.bank_name && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsEditingBank(false);
+                                            setBankDetails({
+                                                bank_name: profile.bank_name || '',
+                                                account_name: profile.account_name || '',
+                                                account_number: profile.account_number || '',
+                                                ifsc_code: profile.ifsc_code || ''
+                                            });
+                                            setBankError('');
+                                        }}
+                                        className="w-full md:w-auto px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-lg transition"
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-1">Account Number</label>
-                                <input
-                                    type="text"
-                                    value={bankDetails.account_number}
-                                    onChange={(e) => setBankDetails({ ...bankDetails, account_number: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="1234567890"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-1">IFSC / Routing Code</label>
-                                <input
-                                    type="text"
-                                    value={bankDetails.ifsc_code}
-                                    onChange={(e) => setBankDetails({ ...bankDetails, ifsc_code: e.target.value })}
-                                    className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
-                                    placeholder="ABCD0123456"
-                                />
+                        </form>
+                    ) : (
+                        <div className="space-y-4 pt-2">
+                            {bankSuccess && <div className="p-3 bg-green-500/10 text-green-500 border border-green-500/20 rounded-lg text-sm mb-4">{bankSuccess}</div>}
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                    <div className="text-sm text-slate-400 mb-1">Bank Name</div>
+                                    <div className="text-lg font-medium text-white">{profile.bank_name}</div>
+                                </div>
+                                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                    <div className="text-sm text-slate-400 mb-1">Account Holder Name</div>
+                                    <div className="text-lg font-medium text-white">{profile.account_name}</div>
+                                </div>
+                                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                    <div className="text-sm text-slate-400 mb-1">Account Number</div>
+                                    <div className="text-lg font-medium text-white font-mono">{profile.account_number}</div>
+                                </div>
+                                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                                    <div className="text-sm text-slate-400 mb-1">IFSC / Routing Code</div>
+                                    <div className="text-lg font-medium text-white font-mono">{profile.ifsc_code}</div>
+                                </div>
                             </div>
                         </div>
-
-                        {bankError && <div className="text-red-500 text-sm mt-2">{bankError}</div>}
-                        {bankSuccess && <div className="text-green-500 text-sm mt-2">{bankSuccess}</div>}
-
-                        <button
-                            type="submit"
-                            disabled={bankLoading}
-                            className="w-full md:w-auto mt-4 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium rounded-lg transition"
-                        >
-                            {bankLoading ? 'Saving...' : 'Save Bank Details'}
-                        </button>
-                    </form>
+                    )}
                 </div>
             </div>
 
