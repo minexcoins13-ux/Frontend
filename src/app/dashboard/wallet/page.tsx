@@ -168,7 +168,7 @@ Thank you for using MinexCoins.
                                     value={wallet.address}
                                     size={120}
                                     bgColor={"transparent"}
-                                    fgColor={"#ffffff"}
+                                    fgColor={"#000000"}
                                     level={"M"}
                                     className="bg-white p-2 rounded-lg"
                                 />
