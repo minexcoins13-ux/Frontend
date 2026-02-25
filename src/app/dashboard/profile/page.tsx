@@ -12,12 +12,25 @@ interface UserProfile {
     status: string;
     referral_code: string;
     created_at: string;
+    kyc?: {
+        status: string;
+        document_type: string;
+        document_url: string;
+        admin_note: string;
+    };
 }
 
 export default function ProfilePage() {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    // KYC Upload State
+    const [file, setFile] = useState<File | null>(null);
+    const [documentType, setDocumentType] = useState('PASSPORT');
+    const [uploadLoading, setUploadLoading] = useState(false);
+    const [uploadError, setUploadError] = useState('');
+    const [uploadSuccess, setUploadSuccess] = useState('');
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -34,6 +47,46 @@ export default function ProfilePage() {
 
         fetchProfile();
     }, []);
+
+    const handleFileUpload = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!file) {
+            setUploadError('Please select a file to upload');
+            return;
+        }
+
+        setUploadLoading(true);
+        setUploadError('');
+        setUploadSuccess('');
+
+        const formData = new FormData();
+        formData.append('document', file);
+        formData.append('document_type', documentType);
+
+        try {
+            const res = await api.post('/kyc/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+
+            if (res.data.success) {
+                setUploadSuccess('KYC document uploaded successfully! Status is now PENDING.');
+                // Optimistically update profile kyc status
+                setProfile(prev => prev ? {
+                    ...prev,
+                    kyc: res.data.data
+                } : null);
+                setFile(null);
+            }
+        } catch (err: any) {
+            console.error('KYC Upload Error:', err);
+            setUploadError(err.response?.data?.message || 'Failed to upload document');
+        } finally {
+            setUploadLoading(false);
+        }
+    };
 
     if (loading) return <div className="text-white p-6">Loading profile...</div>;
     if (error) return <div className="text-red-500 p-6">{error}</div>;
@@ -85,11 +138,70 @@ export default function ProfilePage() {
                         </div>
                         <div className="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
                             <span className="text-slate-400">KYC Status</span>
-                            <span className="text-yellow-500 font-medium flex items-center gap-1">
-                                <AlertCircle className="w-4 h-4" /> Pending
-                            </span>
+                            {profile.kyc ? (
+                                <span className={`font-medium flex items-center gap-1 ${profile.kyc.status === 'APPROVED' ? 'text-green-500' :
+                                    profile.kyc.status === 'REJECTED' ? 'text-red-500' :
+                                        'text-yellow-500'
+                                    }`}>
+                                    {profile.kyc.status === 'APPROVED' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                    {profile.kyc.status}
+                                </span>
+                            ) : (
+                                <span className="text-yellow-500 font-medium flex items-center gap-1">
+                                    <AlertCircle className="w-4 h-4" /> Unsubmitted
+                                </span>
+                            )}
                         </div>
                     </div>
+
+                    {/* KYC Upload Form */}
+                    {(!profile.kyc || profile.kyc.status === 'REJECTED') && (
+                        <div className="mt-6 pt-6 border-t border-slate-700/50">
+                            <h4 className="text-lg font-medium text-white mb-4">Complete Your KYC</h4>
+                            <p className="text-sm text-slate-400 mb-4">
+                                Please upload a valid identity document to verify your account.
+                            </p>
+
+                            <form onSubmit={handleFileUpload} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300 mb-1">
+                                        Document Type
+                                    </label>
+                                    <select
+                                        value={documentType}
+                                        onChange={(e) => setDocumentType(e.target.value)}
+                                        className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500"
+                                    >
+                                        <option value="PASSPORT">Passport</option>
+                                        <option value="ID_CARD">National ID Card</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300 mb-1">
+                                        Upload Document (Image or PDF)
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept=".jpg,.jpeg,.png,.pdf"
+                                        onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                                        className="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-500 file:text-white hover:file:bg-blue-600 cursor-pointer"
+                                    />
+                                </div>
+
+                                {uploadError && <div className="text-red-500 text-sm">{uploadError}</div>}
+                                {uploadSuccess && <div className="text-green-500 text-sm">{uploadSuccess}</div>}
+
+                                <button
+                                    type="submit"
+                                    disabled={uploadLoading || !file}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition"
+                                >
+                                    {uploadLoading ? 'Uploading...' : 'Submit Document'}
+                                </button>
+                            </form>
+                        </div>
+                    )}
                 </div>
 
                 {/* Security Settings */}
