@@ -105,6 +105,11 @@ export default function Register() {
                 <p className="mt-4 text-center text-slate-400 text-sm">
                     Already have an account? <Link href="/auth/login" className="text-blue-400 hover:underline">Login</Link>
                 </p>
+                <div className="mt-8 pt-6 border-t border-slate-800 text-center">
+                    <p className="text-slate-500 text-sm">
+                        Need help? Contact <a href="mailto:support@minexcoins.com" className="text-blue-400 hover:underline">support@minexcoins.com</a>
+                    </p>
+                </div>
             </div>
         </div>
     );

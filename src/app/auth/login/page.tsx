@@ -79,6 +79,11 @@ export default function Login() {
                 <p className="mt-4 text-center text-slate-400 text-sm">
                     Don't have an account? <Link href="/auth/register" className="text-blue-400 hover:underline">Register</Link>
                 </p>
+                <div className="mt-8 pt-6 border-t border-slate-800 text-center">
+                    <p className="text-slate-500 text-sm">
+                        Need help? Contact <a href="mailto:support@minexcoins.com" className="text-blue-400 hover:underline">support@minexcoins.com</a>
+                    </p>
+                </div>
             </div>
         </div>
     );
