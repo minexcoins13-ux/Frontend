@@ -7,24 +7,28 @@ import { Check, User, DollarSign, Trash2, TrendingUp, TrendingDown } from 'lucid
 import { useBinanceTicker } from '@/hooks/useBinanceTicker';
 
 export default function AdminDashboard() {
-    const [stats, setStats] = useState({ users: 0, pendingDeposits: 0 });
+    const [stats, setStats] = useState({ users: 0, pendingDeposits: 0, pendingKyc: 0 });
     const [deposits, setDeposits] = useState<any[]>([]);
+    const [kycRequests, setKycRequests] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
     const [message, setMessage] = useState('');
     const { prices } = useBinanceTicker(['BTC', 'ETH', 'SOL', 'BNB']);
 
     const fetchData = async () => {
         try {
-            const [usersRes, depositsRes] = await Promise.all([
+            const [usersRes, depositsRes, kycRes] = await Promise.all([
                 api.get('/admin/users'),
-                api.get('/admin/deposits')
+                api.get('/admin/deposits'),
+                api.get('/admin/kyc')
             ]);
 
             setUsers(usersRes.data.data);
             setDeposits(depositsRes.data.data);
+            setKycRequests(kycRes.data.data || []);
             setStats({
                 users: usersRes.data.data.length,
-                pendingDeposits: depositsRes.data.data.length
+                pendingDeposits: depositsRes.data.data.length,
+                pendingKyc: (kycRes.data.data || []).length
             });
 
         } catch (error) {
@@ -57,6 +61,31 @@ export default function AdminDashboard() {
             setTimeout(() => setMessage(''), 3000);
         } catch (error: any) {
             setMessage(error.response?.data?.message || 'Delete failed');
+        }
+    };
+
+    const handleApproveKyc = async (id: string) => {
+        try {
+            await api.put(`/admin/kyc/${id}/approve`);
+            setMessage('KYC approved successfully');
+            fetchData();
+            setTimeout(() => setMessage(''), 3000);
+        } catch (error: any) {
+            setMessage(error.response?.data?.message || 'KYC Approval failed');
+        }
+    };
+
+    const handleRejectKyc = async (id: string) => {
+        const reason = prompt('Reason for rejection (optional):');
+        if (reason === null) return; // User cancelled prompt
+
+        try {
+            await api.put(`/admin/kyc/${id}/reject`, { admin_note: reason });
+            setMessage('KYC rejected successfully');
+            fetchData();
+            setTimeout(() => setMessage(''), 3000);
+        } catch (error: any) {
+            setMessage(error.response?.data?.message || 'KYC Rejection failed');
         }
     };
 
@@ -118,6 +147,74 @@ export default function AdminDashboard() {
                         <p className="text-2xl font-bold">{stats.pendingDeposits}</p>
                     </div>
                 </div>
+                <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 flex items-center">
+                    <div className="p-3 bg-purple-500/10 rounded-full mr-4"><Check className="text-purple-500" /></div>
+                    <div>
+                        <p className="text-slate-400">Pending KYC</p>
+                        <p className="text-2xl font-bold">{stats.pendingKyc}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Pending KYC Requests Table */}
+            <div className="bg-slate-900 rounded-xl border border-slate-800">
+                <div className="p-6 border-b border-slate-800">
+                    <h2 className="text-xl font-bold">Pending KYC Requests</h2>
+                </div>
+                <table className="w-full text-left">
+                    <thead className="bg-slate-800 text-slate-400">
+                        <tr>
+                            <th className="p-4">User</th>
+                            <th className="p-4">Document Type</th>
+                            <th className="p-4">Document</th>
+                            <th className="p-4">Submitted</th>
+                            <th className="p-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {kycRequests.map((kyc) => (
+                            <tr key={kyc.id} className="border-b border-slate-800 last:border-0 hover:bg-slate-800/50">
+                                <td className="p-4">
+                                    <div className="font-bold">{kyc.user.name}</div>
+                                    <div className="text-sm text-slate-500">{kyc.user.email}</div>
+                                </td>
+                                <td className="p-4 font-bold">{kyc.document_type.replace('_', ' ')}</td>
+                                <td className="p-4">
+                                    <a
+                                        href={`http://localhost:5000${kyc.document_url}`} // Assuming backend serves on 5000 locally, change to dynamic URL based on your env
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-500 hover:text-blue-400 text-sm underline"
+                                    >
+                                        View Document
+                                    </a>
+                                </td>
+                                <td className="p-4 text-sm text-slate-500">
+                                    {new Date(kyc.submitted_at).toLocaleDateString()}
+                                </td>
+                                <td className="p-4 flex gap-2">
+                                    <button
+                                        onClick={() => handleApproveKyc(kyc.id)}
+                                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded flex items-center text-sm"
+                                    >
+                                        <Check className="w-4 h-4 mr-1" /> Approve
+                                    </button>
+                                    <button
+                                        onClick={() => handleRejectKyc(kyc.id)}
+                                        className="bg-red-600/20 hover:bg-red-600/30 text-red-500 px-3 py-1 rounded flex items-center text-sm"
+                                    >
+                                        <Trash2 className="w-4 h-4 mr-1" /> Reject
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        {kycRequests.length === 0 && (
+                            <tr>
+                                <td colSpan={5} className="p-4 text-center text-slate-500">No pending KYC requests</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
 
             {/* Pending Deposits Table */}
