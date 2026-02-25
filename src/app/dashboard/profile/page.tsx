@@ -48,6 +48,17 @@ export default function ProfilePage() {
     const [bankSuccess, setBankSuccess] = useState('');
     const [isEditingBank, setIsEditingBank] = useState(false);
 
+    // Password Change State
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [passwordData, setPasswordData] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+    const [passwordLoading, setPasswordLoading] = useState(false);
+    const [passwordError, setPasswordError] = useState('');
+    const [passwordSuccess, setPasswordSuccess] = useState('');
+
     useEffect(() => {
         const fetchProfile = async () => {
             try {
@@ -129,6 +140,42 @@ export default function ProfilePage() {
             setBankError(err.response?.data?.message || 'Failed to update bank details');
         } finally {
             setBankLoading(false);
+        }
+    };
+
+    const handlePasswordSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setPasswordError('');
+        setPasswordSuccess('');
+
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            setPasswordError('New passwords do not match');
+            return;
+        }
+
+        if (passwordData.newPassword.length < 6) {
+            setPasswordError('New password must be at least 6 characters');
+            return;
+        }
+
+        setPasswordLoading(true);
+
+        try {
+            const res = await api.put('/auth/password', {
+                currentPassword: passwordData.currentPassword,
+                newPassword: passwordData.newPassword
+            });
+
+            if (res.data.success) {
+                setPasswordSuccess('Password updated successfully!');
+                setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                setTimeout(() => setIsChangingPassword(false), 2000);
+            }
+        } catch (err: any) {
+            console.error('Password Update Error:', err);
+            setPasswordError(err.response?.data?.message || 'Failed to update password');
+        } finally {
+            setPasswordLoading(false);
         }
     };
 
@@ -254,17 +301,93 @@ export default function ProfilePage() {
                         <Shield className="w-5 h-5 text-green-500" /> Security
                     </h3>
                     <div className="space-y-4">
-                        <div className="flex justify-between items-center p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-slate-700 rounded-lg">
-                                    <Key className="w-5 h-5 text-slate-300" />
+                        <div className="flex flex-col p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                            {isChangingPassword ? (
+                                <form onSubmit={handlePasswordSubmit} className="space-y-4 w-full">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-slate-700 rounded-lg">
+                                                <Key className="w-5 h-5 text-slate-300" />
+                                            </div>
+                                            <div className="text-white font-medium">Change Password</div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsChangingPassword(false);
+                                                setPasswordError('');
+                                                setPasswordSuccess('');
+                                                setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                                            }}
+                                            className="text-sm text-slate-400 hover:text-white transition"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="block text-xs font-medium text-slate-400 mb-1">Current Password</label>
+                                            <input
+                                                type="password"
+                                                value={passwordData.currentPassword}
+                                                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-slate-400 mb-1">New Password</label>
+                                            <input
+                                                type="password"
+                                                value={passwordData.newPassword}
+                                                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-medium text-slate-400 mb-1">Confirm New Password</label>
+                                            <input
+                                                type="password"
+                                                value={passwordData.confirmPassword}
+                                                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                                                className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {passwordError && <div className="text-red-500 text-sm">{passwordError}</div>}
+                                    {passwordSuccess && <div className="text-green-500 text-sm p-2 bg-green-500/10 rounded">{passwordSuccess}</div>}
+
+                                    <button
+                                        type="submit"
+                                        disabled={passwordLoading}
+                                        className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white font-medium rounded-lg text-sm transition"
+                                    >
+                                        {passwordLoading ? 'Updating...' : 'Update Password'}
+                                    </button>
+                                </form>
+                            ) : (
+                                <div className="flex justify-between items-center w-full">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-slate-700 rounded-lg">
+                                            <Key className="w-5 h-5 text-slate-300" />
+                                        </div>
+                                        <div>
+                                            <div className="text-white font-medium">Password</div>
+                                            <div className="text-xs text-slate-400">Regularly update for security</div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsChangingPassword(true)}
+                                        className="px-3 py-1.5 text-sm bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition"
+                                    >
+                                        Change
+                                    </button>
                                 </div>
-                                <div>
-                                    <div className="text-white font-medium">Password</div>
-                                    <div className="text-xs text-slate-400">Last changed 30 days ago</div>
-                                </div>
-                            </div>
-                            <button className="px-3 py-1.5 text-sm bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition">Change</button>
+                            )}
                         </div>
 
                         <div className="flex justify-between items-center p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
