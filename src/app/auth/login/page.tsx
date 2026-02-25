@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -31,7 +32,11 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+        <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white relative">
+            <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-slate-400 hover:text-white transition group">
+                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                <span className="hidden sm:inline">Back to Home</span>
+            </Link>
             <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 w-full max-w-md">
                 <div className="text-center mb-6">
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-2">
