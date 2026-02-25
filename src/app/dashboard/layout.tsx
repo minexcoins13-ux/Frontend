@@ -1,6 +1,7 @@
 "use client";
 
 import Sidebar from '@/components/Sidebar';
+import LiveTicker from '@/components/LiveTicker';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -41,6 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto mt-16 md:mt-0">
+                <LiveTicker />
                 {children}
             </main>
         </div>
