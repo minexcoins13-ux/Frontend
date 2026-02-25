@@ -19,11 +19,19 @@ export default function ContactPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        console.log('--- Form Submission Started ---');
+        console.log('Payload:', formData);
+
         setStatus('loading');
         setErrorMessage('');
 
         try {
-            await api.post('/contact', formData);
+            console.log('Sending API request to /contact...');
+            // Adding a timeout config to automatically abort if the request hangs
+            const response = await api.post('/contact', formData, { timeout: 15000 });
+            console.log('API Response received:', response.data);
+
             setStatus('success');
             setFormData({
                 firstName: '',
@@ -32,10 +40,21 @@ export default function ContactPage() {
                 subject: 'General Inquiry',
                 message: ''
             });
+
+            // Automatically reset status after 5 seconds to clear the success message
+            setTimeout(() => {
+                setStatus('idle');
+            }, 5000);
+
         } catch (err: any) {
-            console.error('Contact Form Error:', err);
+            console.error('Contact Form Error Caught:', err);
             setStatus('error');
-            setErrorMessage(err.response?.data?.message || 'Failed to send message. Please try again later.');
+
+            if (err.code === 'ECONNABORTED') {
+                setErrorMessage('The request timed out. Please check your internet connection and backend server.');
+            } else {
+                setErrorMessage(err.response?.data?.message || err.message || 'Failed to send message. Please try again later.');
+            }
         }
     };
 
