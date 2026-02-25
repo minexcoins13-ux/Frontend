@@ -5,6 +5,7 @@ import api from '@/services/api';
 import { RefreshCw, ArrowUpRight, ArrowDownLeft, Wallet as WalletIcon, LogOut, Download } from 'lucide-react';
 import WalletModal from '@/components/WalletModal';
 import jsPDF from 'jspdf';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function WalletPage() {
     const [wallets, setWallets] = useState<any[]>([]);
@@ -162,9 +163,19 @@ Thank you for using MinexCoins.
                         </div>
                         <p className="text-2xl font-bold mb-2">{wallet.balance.toFixed(8)}</p>
                         {wallet.address && (
-                            <div className="bg-slate-800/50 p-2 rounded-lg text-xs text-slate-400 break-all select-all cursor-copy">
-                                <span className="block text-slate-500 mb-1">Deposit Address:</span>
-                                {wallet.address}
+                            <div className="bg-slate-800/50 p-4 rounded-lg flex flex-col items-center gap-4 mt-4">
+                                <QRCodeSVG
+                                    value={wallet.address}
+                                    size={120}
+                                    bgColor={"transparent"}
+                                    fgColor={"#ffffff"}
+                                    level={"M"}
+                                    className="bg-white p-2 rounded-lg"
+                                />
+                                <div className="text-xs text-slate-400 break-all select-all cursor-copy w-full text-center">
+                                    <span className="block text-slate-500 mb-1">Wallet Address:</span>
+                                    <span className="font-mono bg-slate-900 px-2 py-1 rounded block">{wallet.address}</span>
+                                </div>
                             </div>
                         )}
                     </div>
