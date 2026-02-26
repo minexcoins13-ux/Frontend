@@ -6,6 +6,7 @@ import api from '@/services/api';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -36,6 +37,33 @@ export default function Login() {
         }
     };
 
+    const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+        if (!credentialResponse.credential) {
+            setError('Google login failed');
+            return;
+        }
+
+        setIsSubmitting(true);
+        setError('');
+
+        try {
+            const res = await api.post('/auth/google', {
+                credential: credentialResponse.credential
+            });
+            login(res.data.data.token, res.data.data);
+            router.push('/dashboard');
+        } catch (err: any) {
+            console.error('Google Login Error:', err);
+            setError(err.response?.data?.message || 'Google login failed');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleGoogleError = () => {
+        setError('Google authentication failed');
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white relative">
             <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-slate-400 hover:text-white transition group">
@@ -51,6 +79,25 @@ export default function Login() {
                         Please sign in to continue
                     </p>
                 </div>
+
+                <div className="mb-6 flex justify-center">
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={handleGoogleError}
+                        theme="filled_black"
+                        shape="pill"
+                    />
+                </div>
+
+                <div className="relative mb-6">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-slate-800"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                        <span className="px-2 bg-slate-900 text-slate-500">Or continue with email</span>
+                    </div>
+                </div>
+
                 {error && <div className="bg-red-500/10 text-red-500 p-3 rounded mb-4 text-sm">{error}</div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
