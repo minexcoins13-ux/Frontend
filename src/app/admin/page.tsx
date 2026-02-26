@@ -103,6 +103,19 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleDeleteUser = async (id: string, name: string) => {
+        if (!confirm(`WARNING: Are you sure you want to completely delete the user "${name}" and all their associated data (wallets, deposits, trades, etc.)?\n\nThis action CANNOT be undone.`)) return;
+
+        try {
+            await api.delete(`/admin/users/${id}`);
+            setMessage(`User ${name} deleted successfully`);
+            fetchData();
+            setTimeout(() => setMessage(''), 3000);
+        } catch (error: any) {
+            setMessage(error.response?.data?.message || 'Failed to delete user');
+        }
+    };
+
     return (
         <div className="space-y-8">
             <h1 className="text-3xl font-bold text-red-500">Admin Panel</h1>
@@ -284,14 +297,23 @@ export default function AdminDashboard() {
                                         ))}
                                     </td>
                                     <td className="p-4 text-slate-500 text-sm" suppressHydrationWarning>{new Date(u.created_at).toLocaleDateString()}</td>
-                                    <td className="p-4">
+                                    <td className="p-4 space-x-2">
                                         {u.role !== 'ADMIN' && (
-                                            <button
-                                                onClick={() => handleUpdateUserStatus(u.id, u.status)}
-                                                className={`px-3 py-1 rounded text-sm text-white ${u.status === 'ACTIVE' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
-                                            >
-                                                {u.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
-                                            </button>
+                                            <>
+                                                <button
+                                                    onClick={() => handleUpdateUserStatus(u.id, u.status)}
+                                                    className={`px-3 py-1 rounded text-sm text-white ${u.status === 'ACTIVE' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'}`}
+                                                >
+                                                    {u.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteUser(u.id, u.name)}
+                                                    className="px-3 py-1 rounded text-sm text-white bg-red-600 hover:bg-red-700 mt-2 sm:mt-0"
+                                                    title="Permanently delete user"
+                                                >
+                                                    <Trash2 className="w-4 h-4 inline-block -mt-1 mr-1" /> Delete
+                                                </button>
+                                            </>
                                         )}
                                     </td>
                                 </tr>
